@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>智能肠胃道诊断系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 新增数据可视化库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <!-- 新增动画库 -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+</head>
+<body>
+    <!-- 新增动态背景 -->
+    <div class="animated-bg"></div>
+    <header class="medical-header" data-aos="fade-down">
+        <h1>肠胃道智能诊断平台</h1>
+        <nav>
+            <a href="#current-status">现状分析</a>
+            <a href="#modules">功能模块</a>
+            <a href="#diagnose">立即诊断</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section id="current-status" class="status-section">
+            <h2>当前诊断现状</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>年度确诊病例</h3>
+                    <p class="number">1,234,567</p>
+                </div>
+                <div class="stat-item">
+                    <h3>AI诊断准确率</h3>
+                    <p class="number">98.7%</p>
+                </div>
+            </div>
+            <div class="description">
+                <p>基于深度学习的多模态诊断系统，整合了内镜影像分析、病理切片识别和临床症状评估三大核心模块。</p>
+            </div>
+        </section>
+
+        <section id="modules" class="modules-section">
+            <h2>扩展功能模块</h2>
+            <div class="module-cards">
+                <div class="card">
+                    <h3>实时协作诊断</h3>
+                    <p>多专家在线会诊平台（开发中）</p>
+                </div>
+                <div class="card">
+                    <h3>病程预测模型</h3>
+                    <p>基于时间序列的病情发展预测（规划中）</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="diagnose-cta" data-aos="fade-up" data-aos-delay="200">
+            <a href="{{ url_for('diagnose') }}" class="diagnose-button">
+                <span>立即开始智能诊断</span>
+                <svg class="button-icon">
+                    <use xlink:href="#diagnose-icon"/>
+                </svg>
+                <div class="button-particles"></div>
+            </a>
+        </section>
+
+        <!-- 新增患者故事专栏 -->
+        <section class="patient-stories" data-aos="zoom-in">
+            <h2>患者康复故事</h2>
+            <div class="story-carousel">
+                <article class="story-card">
+                    <div class="story-media">
+                        <img src="/static/images/story1.jpg" alt="患者案例" class="story-image">
+                        <div class="story-overlay">
+                            <button class="play-button">▶</button>
+                        </div>
+                    </div>
+                    <div class="story-content">
+                        <h3>胃癌早期筛查案例</h3>
+                        <p>通过AI辅助诊断系统及时发现早期病变，患者术后5年生存率达95%...</p>
+                    </div>
+                </article>
+                <!-- 更多故事卡片 -->
+            </div>
+        </section>
+
+        <!-- 新增实时新闻 -->
+        <section class="medical-news" data-aos="fade-left">
+            <h2>最新医学动态</h2>
+        </section>
+
+        <!-- 新增数据可视化区块 -->
+        <section class="data-section" data-aos="zoom-in">
+            <h2>实时诊断数据</h2>
+            <div id="data-chart"></div>
+        </section>
+    </main>
+
+    <script>
+        // 初始化动画库
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // 初始化ECharts图表
+        let chart = echarts.init(document.getElementById('data-chart'));
+        
+        // 模拟实时数据（实际应用可替换为API请求）
+        function fetchData() {
+            return {
+                categories: ['胃炎', '胃溃疡', '胃癌', '肠炎', '肠癌', '其他'],
+                data: Array.from({length: 6}, () => Math.floor(Math.random() * 1000))
+            };
+        }
+
+        // 图表配置
+        let option = {
+            tooltip: {
+                trigger: 'axis',
+                formatter: '病例数量: {c}'
+            },
+            xAxis: {
+                type: 'category',
+                data: fetchData().categories,
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: fetchData().data,
+                type: 'bar',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#3498db' },
+                        { offset: 1, color: '#2980b9' }
+                    ])
+                }
+            }]
+        };
+
+        chart.setOption(option);
+
+        // 每30秒更新数据
+        setInterval(() => {
+            let newData = fetchData();
+            chart.setOption({
+                xAxis: {
+                    data: newData.categories
+                },
+                series: [{
+                    data: newData.data
+                }]
+            });
+        }, 30000);
+
+        // 窗口大小变化时自适应图表
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+    </script>
+</body>
+</html>

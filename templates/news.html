@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>胃肠道疾病新闻动态</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        .news-card {
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .source-badge {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: rgba(0, 123, 255, 0.9);
+            color: white;
+        }
+        .news-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .news-link {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .news-body {
+            padding: 20px;
+            background: white;
+        }
+        .navbar {
+            background: #f8f9fa;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">胃肠疾病诊断系统</a>
+            <div class="d-flex">
+                <a href="/" class="btn btn-outline-primary me-2">返回首页</a>
+                <a href="/diagnose" class="btn btn-primary">开始诊断</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4">最新胃肠疾病动态</h2>
+        <div class="row">
+            {% for news in news_list %}
+            <div class="col-md-6">
+                <div class="news-card">
+                    <div class="news-body position-relative">
+                        <span class="badge source-badge">{{ news.source }}</span>
+                        <h5 class="mb-3">{{ news.title }}</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="news-date">{{ news.date }}</span>
+                            <a href="{{ news.link }}" target="_blank" class="news-link" 
+                               onclick="event.preventDefault(); window.open('{{ news.link }}', '_blank').focus();">
+                                ＞ 查看详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // 在新标签页打开链接后保持当前页面状态
+        document.querySelectorAll('.news-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.open(this.href, '_blank').focus();
+            });
+        });
+    </script>
+</body>
+</html>
