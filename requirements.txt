@@ -17,6 +17,4 @@ plotly
 # 数值计算与数据处理
 numpy
 pandas
-# 以下包为可选依赖，如项目中需要 mamba_ssm 或 selective_scan，请取消注释
-mamba_ssm
-selective_scan
+
