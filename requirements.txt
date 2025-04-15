@@ -1,22 +1,22 @@
-# 基础依赖
-Flask==2.1.3
-Werkzeug==2.1.2
-requests==2.28.1
-beautifulsoup4==4.11.1
-
-# 数据分析
-numpy==1.23.5
-matplotlib==3.7.1
-Pillow==9.4.0
-
-# 深度学习框架
-torch==2.0.1+cu118
-torchvision==0.15.2+cu118
---extra-index-url https://download.pytorch.org/whl/cu118
-
-# 生产部署
-waitress==2.1.2
-streamlit==1.23.1
-
-# 可选依赖（Volc引擎API）
-openai==1.3.0
+# PyTorch 及相关工具
+torch
+torchvision
+# 数学与张量操作辅助工具
+einops
+# 计算机视觉和模型组件
+timm
+# Web 应用构建
+streamlit
+# OpenAI 接口
+openai
+# 图像处理
+Pillow
+# 数据可视化
+matplotlib
+plotly
+# 数值计算与数据处理
+numpy
+pandas
+# 以下包为可选依赖，如项目中需要 mamba_ssm 或 selective_scan，请取消注释
+mamba_ssm
+selective_scan

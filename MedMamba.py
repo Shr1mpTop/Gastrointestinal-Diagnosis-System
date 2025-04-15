@@ -9,11 +9,8 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from einops import rearrange, repeat
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
-try:
-    from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
-except:
-    pass
-
+from selective_scan_interface import selective_scan_fn, selective_scan_ref
+#from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
 # an alternative for mamba_ssm (in which causal_conv1d is needed)
 try:
     from selective_scan import selective_scan_fn as selective_scan_fn_v1
@@ -22,7 +19,6 @@ except:
     pass
 
 DropPath.__repr__ = lambda self: f"timm.DropPath({self.drop_prob})"
-
 
 def flops_selective_scan_ref(B=1, L=256, D=768, N=16, with_D=True, with_Z=False, with_Group=True, with_complex=False):
     """
@@ -441,7 +437,6 @@ class SS2D(nn.Module):
 
     def forward_corev0(self, x: torch.Tensor):
         self.selective_scan = selective_scan_fn
-        
         B, C, H, W = x.shape
         L = H * W
         K = 4
@@ -853,10 +848,8 @@ class VSSM(nn.Module):
         return x
 
 
-medmamba_t = VSSM(depths=[2, 2, 4, 2],dims=[96,192,384,768],num_classes=6).to("cuda")
-medmamba_s = VSSM(depths=[2, 2, 8, 2],dims=[96,192,384,768],num_classes=6).to("cuda")
-medmamba_b = VSSM(depths=[2, 2, 12, 2],dims=[128,256,512,1024],num_classes=6).to("cuda")
-
-data = torch.randn(1,3,224,224).to("cuda")
-
-print(medmamba_t(data).shape)
+#medmamba_t = VSSM(depths=[2, 2, 4, 2],dims=[96,192,384,768],num_classes=6).to("cuda"))
+#medmamba_s = VSSM(depths=[2, 2, 8, 2],dims=[96,192,384,768],num_classes=6).to("cuda")
+#medmamba_b = VSSM(depths=[2, 2, 12, 2],dims=[128,256,512,1024],num_classes=6).to("cuda")
+#data = torch.randn(1,3,224,224).to("cuda")
+#print(medmamba_t(data).shape)
