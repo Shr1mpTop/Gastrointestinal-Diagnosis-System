@@ -1,9 +1,10 @@
-# app.py (Main Homepage Script)
 import streamlit as st
 import torch
-from MedMamba import VSSM # Assuming MedMamba.py is in the same directory or installed
-from LLM import DiagnosisExplainer # Assuming LLM.py is in the same directory or installed
-import pandas as pd # Keep pandas for the health check table if needed on homepage
+from grad_cam import GradCAM
+from MedMamba import SS_Conv_SSM
+from MedMamba import VSSM  # Assuming MedMamba.py is in the same directory or installed
+from LLM import DiagnosisExplainer  # Assuming LLM.py is in the same directory or installed
+import pandas as pd  # Keep pandas for the health check table if needed on homepage
 
 # --- Configuration ---
 # Set wide layout and page title for the entire app
@@ -11,7 +12,7 @@ st.set_page_config(
     page_title="Kvasir Pathology Diagnosis System",
     layout="wide",
     initial_sidebar_state="expanded",
-    page_icon="🔬" # Optional: Add an icon
+    page_icon="🔬"  # Optional: Add an icon
 )
 
 # --- Device Configuration (can be defined here or in diagnosis page) ---
@@ -41,7 +42,7 @@ def initialize_explainer():
     """Initializes the Diagnosis Explainer."""
     try:
         # Replace with your actual API key or initialization logic
-        explainer = DiagnosisExplainer("6b7a963f-0952-4338-8e3e-29460040f0bf") # Make sure LLM.py is accessible
+        explainer = DiagnosisExplainer("6b7a963f-0952-4338-8e3e-29460040f0bf")  # Make sure LLM.py is accessible
         return explainer
     except NameError:
         st.error("Error: DiagnosisExplainer class not found. Make sure LLM.py is available.")
