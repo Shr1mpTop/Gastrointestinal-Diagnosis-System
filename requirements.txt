@@ -12,6 +12,7 @@ openai
 # 图像处理
 Pillow
 opencv-python
+opencv-python-headless
 # 数据可视化
 matplotlib
 plotly
