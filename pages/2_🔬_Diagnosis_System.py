@@ -12,6 +12,9 @@ import cv2
 import torch.nn.functional as F
 from grad_cam import GradCAM
 from MedMamba import SS_Conv_SSM, SparseAttention, SEBlock
+from fpdf import FPDF
+import tempfile
+
 
 # --- Configuration ---
 # Device configuration (can inherit from app.py or redefine if needed)
@@ -171,6 +174,8 @@ if uploaded_file is not None:
         # Display Diagnosis Result
         with col2:
             pred_idx = torch.argmax(probs).item()
+            pred_label = labels[pred_idx]
+            pred_conf  = probs[pred_idx].item()
             st.subheader(f"Diagnosis Result: {labels[pred_idx]}")
             st.metric(label="Confidence", value=f"{probs[pred_idx]:.1f}%")
 
@@ -179,15 +184,15 @@ if uploaded_file is not None:
             tab1, tab2 = st.tabs(["Confidence Distribution", "Clinical Guidelines"])
             y_pos = np.arange(len(labels))
             with tab1:
-                fig, ax = plt.subplots(figsize=(10, 5))
-                ax.barh(y_pos, probs.cpu().numpy(), color='#1f77b4', align='center')
+                fig_conf, ax_conf = plt.subplots(figsize=(10, 5))
+                ax_conf.barh(y_pos, probs.cpu().numpy(), align='center')
                 plt.rcParams['axes.unicode_minus'] = False
-                ax.set_yticks(y_pos)
-                ax.set_yticklabels(labels)
-                ax.invert_yaxis()
-                ax.set_xlabel("Probability (%)")
-                ax.set_title("Predicted Probability per Class")
-                st.pyplot(fig)
+                ax_conf.set_yticks(y_pos)
+                ax_conf.set_yticklabels(labels)
+                ax_conf.invert_yaxis()
+                ax_conf.set_xlabel("Probability (%)")
+                ax_conf.set_title("Predicted Probability per Class")
+                st.pyplot(fig_conf)
 
             with tab2:
                 st.markdown("""
@@ -226,12 +231,15 @@ if uploaded_file is not None:
 
         # Interpretability Section
         with st.expander("🔍 Model Interpretability", expanded=False):
+            cols = st.columns(2)
             if cam_overlay is not None:
-                st.subheader("Class Activation Map (CAM)")
-                st.image(cam_overlay, caption="CAM Overlay on Processed Input (224x224)", use_container_width=True)
+                with cols[0]:
+                    st.subheader("Class Activation Map (CAM)")
+                    st.image(cam_overlay, caption="CAM Overlay on Processed Input (224x224)", use_container_width=True)
             if attn_overlay is not None:
-                st.subheader("Attention Map")
-                st.image(attn_overlay, caption="Attention Map Overlay on Processed Input (224x224)", use_container_width=True)
+                with cols[1]:
+                    st.subheader("Attention Map")
+                    st.image(attn_overlay, caption="Attention Map Overlay on Processed Input (224x224)", use_container_width=True)
             if se_weights:
                 try:
                     w = se_weights[0].numpy()
@@ -273,12 +281,98 @@ if uploaded_file is not None:
                             {explanation.replace('\n', '<br>')}
                         </div>
                     """, unsafe_allow_html=True)
-                    st.download_button(
-                        label="⬇️ Download Full Report (.md)",
-                        data=explanation,
-                        file_name=f"diagnosis_report_{labels[pred_idx]}.md",
-                        mime="text/markdown"
-                    )
+                    
+                    # 1. 把 PIL.Image 转成 PNG bytes
+                    buf_input = BytesIO()
+                    img.save(buf_input, format="PNG")
+                    buf_input.seek(0)
+
+                    # 2. 把置信度柱状图转成 PNG bytes
+                    buf_conf = BytesIO()
+                    fig_conf.savefig(buf_conf, format="PNG", bbox_inches='tight')
+                    buf_conf.seek(0)
+
+                    # 3. Grad-CAM 图转成 PNG bytes（如有）
+                    buf_cam = BytesIO()
+                    if cam_overlay is not None:
+                        cam_img = Image.fromarray((cam_overlay * 255).astype('uint8'))
+                        cam_img.save(buf_cam, format="PNG")
+                        buf_cam.seek(0)
+
+                    def write_tmp(buf, suffix=".png"):
+                        """把 BytesIO 写入临时文件，返回文件路径。"""
+                        tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+                        tmp.write(buf.getvalue())
+                        tmp.flush()
+                        return tmp.name
+
+                    # 写入临时文件，拿到路径
+                    input_path  = write_tmp(buf_input)
+                    conf_path   = write_tmp(buf_conf)
+                    cam_path    = write_tmp(buf_cam) if cam_overlay is not None else None
+
+                    # --- PDF 初始化 ---
+                    pdf = FPDF(format='A4')
+                    pdf.add_page()
+                    pdf.set_margins(10, 10, 10)  # 10mm 边距
+                    pdf.set_auto_page_break(auto=True, margin=10)
+                    pdf.add_font('SimHei', '', 'SimHei.ttf', uni=True)
+
+                    # --- 标题 ---
+                    pdf.set_font("SimHei", "", 14)
+                    pdf.cell(0, 8, "病理诊断完整报告", ln=True, align="C")
+                    pdf.ln(6)  # 标题后间距
+
+                    # --- 图像宽度 ---
+                    img_w = 100  # 固定图像宽度 (mm)
+
+                    # --- Section 1: 上传原图 ---
+                    pdf.set_font("SimHei", "", 12)
+                    pdf.cell(0, 6, "1. 上传原图", ln=True)
+                    pdf.image(input_path, x=(pdf.w - img_w)/2, w=img_w)  # 居中图像
+                    pdf.ln(2)
+                    pdf.set_font("SimHei", "", 10)
+                    pdf.cell(0, 5, "图1: 上传的原始病理图像", align="C")
+                    pdf.ln(4)  # 紧凑间距
+
+                    # --- Section 2: Grad-CAM 可视化 ---
+                    pdf.set_font("SimHei", "", 12)
+                    pdf.cell(0, 6, "2. Grad-CAM 可视化", ln=True)
+                    pdf.image(cam_path, x=(pdf.w - img_w)/2, w=img_w)
+                    pdf.ln(2)
+                    pdf.set_font("SimHei", "", 10)
+                    pdf.cell(0, 5, "图2: Grad-CAM 可视化结果", align="C")
+                    pdf.ln(4)
+
+                    # --- Section 3: 置信度分布 ---
+                    pdf.set_font("SimHei", "", 12)
+                    pdf.cell(0, 6, "3. 置信度分布", ln=True)
+                    if cam_path:  # 假设 cam_path 作为标志，必要时调整
+                        pdf.image(conf_path, x=(pdf.w - img_w)/2, w=img_w)
+                        pdf.ln(2)
+                        pdf.set_font("SimHei", "", 10)
+                        pdf.cell(0, 5, "图3: 置信度分布图", align="C")
+                        pdf.ln(4)
+
+                    # --- Section 4: 诊断结果 ---
+                    pdf.set_font("SimHei", "", 12)
+                    pdf.cell(0, 6, "4. 诊断结果", ln=True)
+                    pdf.set_font("SimHei", "", 10)
+                    pdf.multi_cell(0, 5, f"类别：{pred_label}\n置信度：{pred_conf:.1f}%")
+                    pdf.ln(4)
+
+                    # --- Section 5: AI 生成的病理报告（摘要） ---
+                    pdf.set_font("SimHei", "", 12)
+                    pdf.cell(0, 6, "5. AI 生成的病理报告（摘要）", ln=True)
+                    pdf.set_font("SimHei", "", 10)
+                    for line in explanation.split("\n")[:8]:
+                        pdf.multi_cell(0, 5, line)
+
+                    # 输出
+                    pdf_bytes = pdf.output(dest='S')
+                    pdf_buffer = BytesIO(pdf_bytes.encode('latin-1'))
+                    pdf_buffer.seek(0)
+                    st.download_button("⬇️ Download PDF", data=pdf_buffer, file_name=f"{pred_label}.pdf", mime="application/pdf")
                 except Exception as e:
                     st.error(f"Failed to generate AI explanation: {str(e)}")
         else:
@@ -295,7 +389,7 @@ with st.expander("Model & System Information"):
     * **Depths:** [2, 2, 12, 2]
     * **Dimensions:** [128, 256, 512, 1024]
     * **Number of Classes:** 8
-    * **Dataset:** Kvasir V2 (likely basis)
+    * **Dataset:** Kvasir V2
     """)
     # Simplified weight check - direct loading might be slow/redundant here
     if st.button("Verify Model State"):

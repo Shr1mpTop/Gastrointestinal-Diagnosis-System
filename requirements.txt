@@ -15,6 +15,7 @@ opencv-python-headless
 # 数据可视化
 matplotlib
 plotly
+fpdf
 # 数值计算与数据处理
 numpy
 pandas
