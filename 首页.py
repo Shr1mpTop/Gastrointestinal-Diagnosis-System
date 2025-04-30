@@ -9,7 +9,7 @@ import pandas as pd  # Keep pandas for the health check table if needed on homep
 # --- Configuration ---
 # Set wide layout and page title for the entire app
 st.set_page_config(
-    page_title="Kvasir Pathology Diagnosis System",
+    page_title="Kvasir 病理诊断系统",
     layout="wide",
     initial_sidebar_state="expanded",
     page_icon="🔬"  # Optional: Add an icon
@@ -75,18 +75,17 @@ if 'explainer' not in st.session_state:
         st.error("AI Explainer failed to initialize. Explanation functionality will be unavailable.")
 
 # --- Homepage Content ---
-st.title("Welcome to the Kvasir Endoscopic Image Diagnosis System")
+st.title("欢迎使用 Kvasir 内窥镜图像诊断系统")
 st.markdown("---")
 
-st.header("About This System")
+st.header("关于本系统")
 st.markdown("""
-This system utilizes the advanced **MedMamba** deep learning architecture to analyze endoscopic images from the Kvasir dataset.
-It provides:
-* Automated classification of pathological findings.
-* Confidence scores for each potential diagnosis.
-* AI-generated explanations of the findings based on the image and diagnosis.
+本系统采用先进的**MedMamba**深度学习架构分析Kvasir数据集中的内窥镜图像，提供：
+* 病理发现的自动分类
+* 各项诊断的置信度评分
+* 基于图像和诊断的AI生成病理解释
 
-**Navigate using the sidebar on the left** to access the main Diagnosis System.
+**请使用左侧边栏**进入主诊断系统。
 """)
 
 # Optional: Add an image to the homepage
@@ -96,12 +95,12 @@ It provides:
 #     st.warning("Homepage image not found.")
 
 
-st.header("Important Disclaimer")
+st.header("重要声明")
 st.warning("""
-**For Research & Educational Purposes Only.**
-This system is an experimental tool based on the Kvasir dataset and the MedMamba model.
-It is **NOT** a substitute for professional medical advice, diagnosis, or treatment.
-Always consult with a qualified healthcare provider for any medical concerns. Diagnostic decisions should **NEVER** be based solely on the output of this system.
+**仅供研究及教学使用**
+本系统是基于Kvasir数据集和MedMamba模型的实验性工具，
+**不能替代**专业医疗建议、诊断或治疗。
+遇到任何医疗问题请咨询合格医疗人员，诊断决策**切勿**仅依赖本系统输出。
 """)
 
 st.markdown("---")
@@ -109,19 +108,19 @@ st.caption("Kvasir Pathology Diagnosis System - Version 1.0")
 
 # --- Sidebar Content for Homepage (Optional) ---
 with st.sidebar:
-    st.header("Navigation")
-    st.markdown("Select a page above to get started.")
+    st.header("导航")
+    st.markdown("请从上方选择页面")
     st.divider()
-    st.header("System Status")
+    st.header("系统状态")
     if st.session_state.get('model_loaded', False):
-        st.success("✅ Pathology Model Loaded")
+        st.success("✅ 病理模型已加载")
     else:
-        st.error("❌ Pathology Model Failed")
+        st.error("❌ 病理模型加载失败")
 
     if st.session_state.get('explainer_loaded', False):
-        st.success("✅ AI Explainer Initialized")
+        st.success("✅ AI解释器已初始化")
     else:
-        st.error("❌ AI Explainer Failed")
+        st.error("❌ AI解释器初始化失败")
 
     # You could add a simplified health check here if desired
     # st.button("Quick Check") # Example
